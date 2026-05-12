@@ -650,12 +650,38 @@ function renderInv(){
 
 function spawnAll(){
   players=[];bullets=[];
-  const sp=isSB()?[{wx:2.5*TILE,wy:2.5*TILE},{wx:(SBC-2.5)*TILE,wy:(SBR-2.5)*TILE},{wx:(SBC-3.5)*TILE,wy:(SBR-2.5)*TILE},{wx:(SBC-2.5)*TILE,wy:(SBR-3.5)*TILE},{wx:3.5*TILE,wy:2.5*TILE}]:[{wx:4.5*TILE,wy:4.5*TILE},{wx:45.5*TILE,wy:4.5*TILE},{wx:4.5*TILE,wy:45.5*TILE},{wx:45.5*TILE,wy:45.5*TILE},{wx:24.5*TILE,wy:24.5*TILE}];
-  const bots=['surfer','soldier','mage','tank'].filter(c=>c!==selCls);
-  while(bots.length<4)bots.push(bots[Math.floor(Math.random()*bots.length)]);
-  [{cls:selCls,isP:true},{cls:bots[0],isP:false},{cls:bots[1],isP:false},{cls:bots[2],isP:false},{cls:bots[3],isP:false}].forEach((cfg,i)=>{
-    const d=CDEFS[cfg.cls],s=sp[i];
-    players.push({wx:s.wx,wy:s.wy,vx:0,vy:0,cls:cfg.cls,isP:cfg.isP,hp:d.hp,mhp:d.hp,spd:d.spd,fr:d.fr,ammo:d.maxA,maxA:d.maxA,relT:d.relT,dmg:d.dmg,bspd:d.bspd,col:d.col,name:cfg.isP?'JIJ':d.name,alive:true,cd:0,inv:0,angle:Math.PI/4,frz:0,ait:0,inWater:false,stun:0,slots:[],respawn:0});
+  let cfgs;
+  if(isSB()){
+    // 3v3: player(blue) + 2 blue teammates vs 3 red bots
+    const bots=['surfer','soldier','mage','tank'].filter(c=>c!==selCls);
+    while(bots.length<5)bots.push(bots[Math.floor(Math.random()*bots.length)]);
+    cfgs=[
+      {cls:selCls,isP:true,team:1,wx:2.5*TILE,wy:2.5*TILE},
+      {cls:bots[0],isP:false,team:1,wx:4.5*TILE,wy:2.5*TILE},
+      {cls:bots[1],isP:false,team:1,wx:2.5*TILE,wy:4.5*TILE},
+      {cls:bots[2],isP:false,team:2,wx:(SBC-2.5)*TILE,wy:(SBR-2.5)*TILE},
+      {cls:bots[3],isP:false,team:2,wx:(SBC-4.5)*TILE,wy:(SBR-2.5)*TILE},
+      {cls:bots[4],isP:false,team:2,wx:(SBC-2.5)*TILE,wy:(SBR-4.5)*TILE},
+    ];
+  } else {
+    const bots=['surfer','soldier','mage','tank'].filter(c=>c!==selCls);
+    while(bots.length<4)bots.push(bots[Math.floor(Math.random()*bots.length)]);
+    cfgs=[
+      {cls:selCls,isP:true,team:0,wx:4.5*TILE,wy:4.5*TILE},
+      {cls:bots[0],isP:false,team:0,wx:45.5*TILE,wy:4.5*TILE},
+      {cls:bots[1],isP:false,team:0,wx:4.5*TILE,wy:45.5*TILE},
+      {cls:bots[2],isP:false,team:0,wx:45.5*TILE,wy:45.5*TILE},
+      {cls:bots[3],isP:false,team:0,wx:24.5*TILE,wy:24.5*TILE},
+    ];
+  }
+  cfgs.forEach((cfg,i)=>{
+    const d=CDEFS[cfg.cls];
+    players.push({wx:cfg.wx,wy:cfg.wy,vx:0,vy:0,cls:cfg.cls,isP:cfg.isP,team:cfg.team,
+      hp:d.hp,mhp:d.hp,spd:d.spd,fr:d.fr,ammo:d.maxA,maxA:d.maxA,relT:d.relT,
+      dmg:d.dmg,bspd:d.bspd,col:d.col,name:cfg.isP?'JIJ':d.name,
+      alive:true,cd:0,inv:0,angle:cfg.isP?Math.PI*.25:(cfg.team===1?Math.PI*.25:Math.PI*1.25),
+      frz:0,ait:Math.floor(Math.random()*30),targetX:cfg.wx,targetY:cfg.wy,
+      inWater:false,stun:0,slots:[],respawn:0});
   });
 }
 
@@ -745,26 +771,73 @@ function doInput(p){
   if(K['Space']&&p.cd===0&&p.ammo>0)shoot(p);
 }
 function doBot(p){
-  let near=null,nd=Infinity;
-  for(const o of players){if(!o.alive||o===p||(isSB()&&o.isP===p.isP))continue;const dx=o.wx-p.wx,dy=o.wy-p.wy,d=Math.sqrt(dx*dx+dy*dy);if(d<nd){nd=d;near=o;}}
-  if(!near)return;
+  // Find nearest enemy
+  let enemy=null,enemyDist=Infinity;
+  for(const o of players){
+    if(!o.alive||o===p)continue;
+    if(isSB()&&o.team===p.team)continue;
+    const dx=o.wx-p.wx,dy=o.wy-p.wy,d=Math.sqrt(dx*dx+dy*dy);
+    if(d<enemyDist){enemyDist=d;enemy=o;}
+  }
   p.ait--;
   if(p.ait<=0){
-    p.ait=28+Math.random()*38;
-    const dx=near.wx-p.wx,dy=near.wy-p.wy,ln=Math.sqrt(dx*dx+dy*dy)||1;
-    for(const a of[{vx:dx/ln,vy:dy/ln},{vx:dx/ln+(Math.random()-.5)*.8,vy:dy/ln+(Math.random()-.5)*.8},{vx:-dy/ln,vy:dx/ln},{vx:dy/ln,vy:-dx/ln}]){
-      const vl=Math.sqrt(a.vx*a.vx+a.vy*a.vy)||1,tvx=a.vx/vl,tvy=a.vy/vl;
-      if(!blocked(p.wx+tvx*TILE*.5,p.wy+tvy*TILE*.5,PR*.8)){p.vx=tvx;p.vy=tvy;break;}
+    p.ait=18+Math.random()*22;
+    if(isSB()){
+      // 35% chase enemy, 65% go color tiles
+      if(Math.random()<0.35&&enemy&&enemyDist<TILE*7){
+        p.targetX=enemy.wx+(Math.random()-.5)*TILE;
+        p.targetY=enemy.wy+(Math.random()-.5)*TILE;
+      } else {
+        // Find nearby unpainted or enemy-painted tile
+        let best=null,bestScore=-Infinity;
+        for(let i=0;i<25;i++){
+          const tr=1+Math.floor(Math.random()*(SBR-2));
+          const tc=1+Math.floor(Math.random()*(SBC-2));
+          if(sbGrid[tr][tc]===TW)continue;
+          const paint=sbPaint[tr][tc];
+          if(paint===p.team)continue;
+          const wx=(tc+.5)*TILE,wy=(tr+.5)*TILE;
+          const dist=Math.sqrt((wx-p.wx)**2+(wy-p.wy)**2);
+          const score=(paint===0?50:100)-dist*.008;
+          if(score>bestScore){bestScore=score;best={wx,wy};}
+        }
+        if(best){p.targetX=best.wx;p.targetY=best.wy;}
+        else if(enemy){p.targetX=enemy.wx;p.targetY=enemy.wy;}
+      }
+    } else {
+      if(enemy){
+        p.targetX=enemy.wx+(Math.random()-.5)*TILE*1.5;
+        p.targetY=enemy.wy+(Math.random()-.5)*TILE*1.5;
+      }
     }
   }
-  const dx=near.wx-p.wx,dy=near.wy-p.wy;
-  p.angle=Math.atan2(dy,dx)+(Math.random()-.5)*.6;
-  if(nd<TILE*4.5&&p.cd===0&&p.ammo>0&&Math.random()<.55)shoot(p);
+  // Smooth movement toward target
+  if(p.targetX!==undefined){
+    const dx=p.targetX-p.wx,dy=p.targetY-p.wy,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist>TILE*.25){
+      const dirs=[{vx:dx/dist,vy:dy/dist},{vx:-dy/dist,vy:dx/dist},{vx:dy/dist,vy:-dx/dist},{vx:dx/dist+(Math.random()-.5)*.5,vy:dy/dist+(Math.random()-.5)*.5}];
+      let moved=false;
+      for(const dir of dirs){
+        const vl=Math.sqrt(dir.vx**2+dir.vy**2)||1,tvx=dir.vx/vl,tvy=dir.vy/vl;
+        if(!blocked(p.wx+tvx*TILE*.55,p.wy+tvy*TILE*.55,PR*.7)){
+          p.vx=p.vx*.35+tvx*.65;p.vy=p.vy*.35+tvy*.65;
+          const vl2=Math.sqrt(p.vx**2+p.vy**2)||1;p.vx/=vl2;p.vy/=vl2;
+          moved=true;break;
+        }
+      }
+      if(!moved){p.targetX=p.wx+(Math.random()-.5)*TILE*5;p.targetY=p.wy+(Math.random()-.5)*TILE*5;p.ait=3;}
+    } else {p.vx*=.4;p.vy*=.4;}
+  }
+  if(enemy){
+    const dx=enemy.wx-p.wx,dy=enemy.wy-p.wy;
+    p.angle=Math.atan2(dy,dx)+(Math.random()-.5)*.55;
+    if(enemyDist<TILE*5&&p.cd===0&&p.ammo>0&&Math.random()<.55)shoot(p);
+  }
 }
 function shoot(p){
   if(p.ammo<=0)return;p.cd=p.fr;p.ammo--;p.slots.push(p.relT);
   const snow=isSB(),n=p.cls==='soldier'?2:1;
-  for(let i=0;i<n;i++){const sp=n>1?(i-.5)*.1:0,ang=p.angle+sp;bullets.push({wx:p.wx+Math.cos(ang)*(PR+4),wy:p.wy+Math.sin(ang)*(PR+4),vx:Math.cos(ang)*p.bspd*2,vy:Math.sin(ang)*p.bspd*2,own:p,dmg:snow?0:p.dmg,col:snow?(p.isP?'#3a80f0':'#e04040'):p.col,life:75,frz:p.cls==='mage'&&!snow,snow,team:p.isP?1:2,trail:[]});}
+  for(let i=0;i<n;i++){const sp=n>1?(i-.5)*.1:0,ang=p.angle+sp;bullets.push({wx:p.wx+Math.cos(ang)*(PR+4),wy:p.wy+Math.sin(ang)*(PR+4),vx:Math.cos(ang)*p.bspd*2,vy:Math.sin(ang)*p.bspd*2,own:p,dmg:snow?0:p.dmg,col:snow?(p.isP?'#3a80f0':'#e04040'):p.col,life:75,frz:p.cls==='mage'&&!snow,snow,team:p.team||( p.isP?1:2),trail:[]});}
   if(p.isP)renderAmmo(p);
 }
 function updateBullets(){
@@ -777,7 +850,7 @@ function updateBullets(){
     if(b.wx<0||b.wx>C*TILE||b.wy<0||b.wy>R*TILE){b.life=0;continue;}
     if(b.snow)paintTile(b.wx,b.wy,b.team);
     for(const p of players){
-      if(!p.alive||p===b.own||p.inv>0)continue;if(isSB()&&p.isP===b.own.isP)continue;
+      if(!p.alive||p===b.own||p.inv>0)continue;if(isSB()&&p.team===b.own.team&&p.team!==0)continue;
       const dx=p.wx-b.wx,dy=p.wy-b.wy;
       if(Math.sqrt(dx*dx+dy*dy)<PR+5){
         if(b.snow){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)paintTile(b.wx+dc*TILE,b.wy+dr*TILE,b.team);hurt(p,25);}
