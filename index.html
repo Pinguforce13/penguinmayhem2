@@ -563,7 +563,12 @@ function getScores(){
 function updateSB(){
   if(!isSB())return;
   sbTimer--;if(sbOTshow>0)sbOTshow--;
-  for(const p of players){if(!p.alive)continue;paintTile(p.wx,p.wy,p.isP?1:2);}
+  for(const p of players){
+    if(!p.alive)continue;
+    const _r=Math.floor(p.wy/TILE),_c=Math.floor(p.wx/TILE);
+    if(_r>=0&&_r<SBR&&_c>=0&&_c<SBC&&sbGrid[_r][_c]!==TW)
+      sbPaint[_r][_c]=p.team;
+  }
   const{bp,rp,tot}=getScores();
   document.getElementById('hud-sb-b').textContent='🔵 '+bp+'%';
   document.getElementById('hud-sb-r').textContent='🔴 '+rp+'%';
@@ -917,7 +922,11 @@ function draw(){
       if(tr>ICE_TREMOR*.5){const g=(tr-ICE_TREMOR*.5)/(ICE_TREMOR*.5);cx.fillStyle=`rgba(255,90,20,${g*.35})`;cx.fillRect(bx,by,TILE,TILE);}
       cx.strokeStyle='rgba(160,210,235,.2)';cx.lineWidth=.5;cx.strokeRect(bx,by,TILE,TILE);
       // Paint overlay for snowball
-      if(P[r][c]){cx.globalAlpha=.45;cx.fillStyle=P[r][c]===1?'#2860d0':'#d03020';cx.fillRect(bx,by,TILE,TILE);cx.globalAlpha=1;}
+      if(isSB()){
+          const _paint=sbPaint[r]&&sbPaint[r][c];
+          if(_paint===1){cx.globalAlpha=.45;cx.fillStyle='#2860d0';cx.fillRect(bx,by,TILE,TILE);cx.globalAlpha=1;}
+          else if(_paint===2){cx.globalAlpha=.45;cx.fillStyle='#d03020';cx.fillRect(bx,by,TILE,TILE);cx.globalAlpha=1;}
+        }
     }
   }
   // ice warning
