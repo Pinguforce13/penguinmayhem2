@@ -383,10 +383,10 @@ function drawMtn(){
   const pct=Math.min(1,km/100);
   const t=Date.now()*.0007;
 
-  // Cloud cover — starts at 88% of height, lifts as you climb
-  const cloudY=H*(1-pct*.80-.14);
+  // Clouds FIXED at top — always cover summit, never move
+  const cloudY=H*.28;
 
-  // ── SKY — bright day blue
+  // ── SKY
   const sky=ctx.createLinearGradient(0,0,0,H);
   sky.addColorStop(0,'#7ec8e8');
   sky.addColorStop(.5,'#b8e2f4');
@@ -400,186 +400,157 @@ function drawMtn(){
   ctx.beginPath();ctx.arc(W*.84,H*.1,20,0,Math.PI*2);ctx.fill();
   ctx.restore();
 
-  // ── MOUNTAIN — smooth rounded bezier shape
-  // Mountain body (grey-blue rock, barely visible under snow)
+  // ── MOUNTAIN — irregular, has flat bits, bumps, not perfect
+  // Mountain body (grey rock base)
   ctx.fillStyle='#8aaabb';
   ctx.beginPath();
   ctx.moveTo(-10,H+5);
-  ctx.bezierCurveTo(W*.05,H*.85, W*.1,H*.75, W*.2,H*.68);
-  ctx.bezierCurveTo(W*.28,H*.62, W*.32,H*.55, W*.38,H*.42);
-  ctx.bezierCurveTo(W*.43,H*.3,  W*.47,H*.18, W*.5, H*.05);
-  ctx.bezierCurveTo(W*.53,H*.18, W*.57,H*.3,  W*.62,H*.42);
-  ctx.bezierCurveTo(W*.68,H*.55, W*.72,H*.62, W*.8, H*.68);
-  ctx.bezierCurveTo(W*.9,H*.75,  W*.95,H*.85, W+10,H+5);
+  // Left slope — bumpy with a ledge
+  ctx.lineTo(W*.04,H*.88);
+  ctx.bezierCurveTo(W*.08,H*.82, W*.1,H*.78, W*.13,H*.74);
+  ctx.lineTo(W*.17,H*.72);   // small flat ledge
+  ctx.bezierCurveTo(W*.2,H*.7, W*.22,H*.65, W*.26,H*.6);
+  ctx.bezierCurveTo(W*.29,H*.55, W*.31,H*.5, W*.34,H*.44);
+  ctx.lineTo(W*.36,H*.42);   // another flat bit
+  ctx.bezierCurveTo(W*.38,H*.37, W*.41,H*.28, W*.44,H*.2);
+  ctx.bezierCurveTo(W*.46,H*.14, W*.48,H*.1, W*.49,H*.07);
+  // Peak area — slightly off-center, not perfect
+  ctx.lineTo(W*.5,H*.05);
+  ctx.lineTo(W*.52,H*.08);
+  // Right slope — different character than left
+  ctx.bezierCurveTo(W*.54,H*.13, W*.56,H*.19, W*.58,H*.26);
+  ctx.lineTo(W*.6,H*.28);    // small bump
+  ctx.bezierCurveTo(W*.62,H*.33, W*.64,H*.39, W*.67,H*.46);
+  ctx.bezierCurveTo(W*.7,H*.52, W*.73,H*.58, W*.76,H*.63);
+  ctx.lineTo(W*.79,H*.65);   // flat ledge right side
+  ctx.bezierCurveTo(W*.82,H*.68, W*.86,H*.73, W*.89,H*.78);
+  ctx.bezierCurveTo(W*.92,H*.82, W*.95,H*.87, W+10,H+5);
   ctx.closePath();ctx.fill();
 
-  // ── SNOW — fully white, covers the whole mountain
+  // ── SNOW — fully white over whole mountain
   const snowGrad=ctx.createLinearGradient(0,H*.05,0,H+10);
   snowGrad.addColorStop(0,'rgba(255,255,255,1)');
-  snowGrad.addColorStop(.3,'rgba(250,253,255,1)');
-  snowGrad.addColorStop(.7,'rgba(240,250,255,.97)');
-  snowGrad.addColorStop(1,'rgba(235,248,255,.95)');
+  snowGrad.addColorStop(.4,'rgba(250,253,255,1)');
+  snowGrad.addColorStop(.8,'rgba(242,250,255,.98)');
+  snowGrad.addColorStop(1,'rgba(235,248,255,.96)');
   ctx.fillStyle=snowGrad;
   ctx.beginPath();
   ctx.moveTo(-10,H+5);
-  ctx.bezierCurveTo(W*.05,H*.85, W*.1,H*.75, W*.2,H*.68);
-  ctx.bezierCurveTo(W*.28,H*.62, W*.32,H*.55, W*.38,H*.42);
-  ctx.bezierCurveTo(W*.43,H*.3,  W*.47,H*.18, W*.5, H*.05);
-  ctx.bezierCurveTo(W*.53,H*.18, W*.57,H*.3,  W*.62,H*.42);
-  ctx.bezierCurveTo(W*.68,H*.55, W*.72,H*.62, W*.8, H*.68);
-  ctx.bezierCurveTo(W*.9,H*.75,  W*.95,H*.85, W+10,H+5);
+  ctx.lineTo(W*.04,H*.88);
+  ctx.bezierCurveTo(W*.08,H*.82,W*.1,H*.78,W*.13,H*.74);
+  ctx.lineTo(W*.17,H*.72);
+  ctx.bezierCurveTo(W*.2,H*.7,W*.22,H*.65,W*.26,H*.6);
+  ctx.bezierCurveTo(W*.29,H*.55,W*.31,H*.5,W*.34,H*.44);
+  ctx.lineTo(W*.36,H*.42);
+  ctx.bezierCurveTo(W*.38,H*.37,W*.41,H*.28,W*.44,H*.2);
+  ctx.bezierCurveTo(W*.46,H*.14,W*.48,H*.1,W*.49,H*.07);
+  ctx.lineTo(W*.5,H*.05);ctx.lineTo(W*.52,H*.08);
+  ctx.bezierCurveTo(W*.54,H*.13,W*.56,H*.19,W*.58,H*.26);
+  ctx.lineTo(W*.6,H*.28);
+  ctx.bezierCurveTo(W*.62,H*.33,W*.64,H*.39,W*.67,H*.46);
+  ctx.bezierCurveTo(W*.7,H*.52,W*.73,H*.58,W*.76,H*.63);
+  ctx.lineTo(W*.79,H*.65);
+  ctx.bezierCurveTo(W*.82,H*.68,W*.86,H*.73,W*.89,H*.78);
+  ctx.bezierCurveTo(W*.92,H*.82,W*.95,H*.87,W+10,H+5);
   ctx.closePath();ctx.fill();
 
-  // Subtle shadow on mountain sides for depth
-  const lShadow=ctx.createLinearGradient(0,0,W*.35,0);
-  lShadow.addColorStop(0,'rgba(100,150,180,.18)');
-  lShadow.addColorStop(1,'rgba(100,150,180,0)');
-  ctx.fillStyle=lShadow;
-  ctx.beginPath();
-  ctx.moveTo(-10,H+5);
-  ctx.bezierCurveTo(W*.05,H*.85,W*.1,H*.75,W*.2,H*.68);
-  ctx.bezierCurveTo(W*.28,H*.62,W*.32,H*.55,W*.38,H*.42);
-  ctx.bezierCurveTo(W*.43,H*.3,W*.47,H*.18,W*.5,H*.05);
-  ctx.lineTo(W*.5,H+5);ctx.closePath();ctx.fill();
+  // Subtle side shadows for depth
+  const lS=ctx.createLinearGradient(0,0,W*.4,0);
+  lS.addColorStop(0,'rgba(100,150,180,.16)');lS.addColorStop(1,'rgba(100,150,180,0)');
+  ctx.fillStyle=lS;
+  ctx.beginPath();ctx.moveTo(-10,H+5);ctx.lineTo(W*.04,H*.88);ctx.bezierCurveTo(W*.08,H*.82,W*.1,H*.78,W*.13,H*.74);ctx.lineTo(W*.17,H*.72);ctx.bezierCurveTo(W*.2,H*.7,W*.22,H*.65,W*.26,H*.6);ctx.bezierCurveTo(W*.29,H*.55,W*.31,H*.5,W*.34,H*.44);ctx.lineTo(W*.36,H*.42);ctx.bezierCurveTo(W*.38,H*.37,W*.41,H*.28,W*.44,H*.2);ctx.bezierCurveTo(W*.46,H*.14,W*.48,H*.1,W*.49,H*.07);ctx.lineTo(W*.5,H*.05);ctx.lineTo(W*.5,H+5);ctx.closePath();ctx.fill();
 
-  const rShadow=ctx.createLinearGradient(W,0,W*.65,0);
-  rShadow.addColorStop(0,'rgba(100,150,180,.14)');
-  rShadow.addColorStop(1,'rgba(100,150,180,0)');
-  ctx.fillStyle=rShadow;
-  ctx.beginPath();
-  ctx.moveTo(W+10,H+5);
-  ctx.bezierCurveTo(W*.95,H*.85,W*.9,H*.75,W*.8,H*.68);
-  ctx.bezierCurveTo(W*.72,H*.62,W*.68,H*.55,W*.62,H*.42);
-  ctx.bezierCurveTo(W*.57,H*.3,W*.53,H*.18,W*.5,H*.05);
-  ctx.lineTo(W*.5,H+5);ctx.closePath();ctx.fill();
-
-  // ── TREES (only below cloudY)
+  // ── TREES (only show below cloudY)
   function drawTree(tx,ty,sz){
-    if(ty<cloudY+10)return;
+    if(ty<cloudY+20)return;
     ctx.save();ctx.translate(tx,ty);
-    // Trunk
     ctx.fillStyle='#6b4226';ctx.fillRect(-sz*.08,0,sz*.16,sz*.4);
-    // Three tiers bottom to top
-    const tiers=[
-      {w:sz,y:0,col:'#2d6e3a'},
-      {w:sz*.78,y:-sz*.28,col:'#347a42'},
-      {w:sz*.54,y:-sz*.52,col:'#3a8748'},
-    ];
-    tiers.forEach(tier=>{
-      ctx.fillStyle=tier.col;
-      ctx.beginPath();
-      // Rounded triangle
-      ctx.moveTo(-tier.w/2,tier.y);
-      ctx.quadraticCurveTo(-tier.w*.3,tier.y-sz*.15, 0,tier.y-sz*.55);
-      ctx.quadraticCurveTo(tier.w*.3,tier.y-sz*.15, tier.w/2,tier.y);
-      ctx.closePath();ctx.fill();
-      // Snow on branches
-      ctx.fillStyle='rgba(255,255,255,.82)';
-      ctx.beginPath();
-      ctx.moveTo(-tier.w*.28,tier.y-sz*.18);
-      ctx.quadraticCurveTo(-tier.w*.1,tier.y-sz*.28, 0,tier.y-sz*.55);
-      ctx.quadraticCurveTo(tier.w*.1,tier.y-sz*.28, tier.w*.28,tier.y-sz*.18);
-      ctx.closePath();ctx.fill();
+    [{w:sz,y:0,c:'#2d6e3a'},{w:sz*.78,y:-sz*.28,c:'#347a42'},{w:sz*.54,y:-sz*.52,c:'#3a8748'}].forEach(tier=>{
+      ctx.fillStyle=tier.c;
+      ctx.beginPath();ctx.moveTo(-tier.w/2,tier.y);ctx.quadraticCurveTo(-tier.w*.3,tier.y-sz*.15,0,tier.y-sz*.55);ctx.quadraticCurveTo(tier.w*.3,tier.y-sz*.15,tier.w/2,tier.y);ctx.closePath();ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.8)';
+      ctx.beginPath();ctx.moveTo(-tier.w*.28,tier.y-sz*.18);ctx.quadraticCurveTo(-tier.w*.1,tier.y-sz*.28,0,tier.y-sz*.55);ctx.quadraticCurveTo(tier.w*.1,tier.y-sz*.28,tier.w*.28,tier.y-sz*.18);ctx.closePath();ctx.fill();
     });
     ctx.restore();
   }
+  drawTree(W*.14,H*.79,26);drawTree(W*.21,H*.75,30);drawTree(W*.27,H*.71,24);
+  drawTree(W*.19,H*.85,22);drawTree(W*.73,H*.72,28);drawTree(W*.79,H*.77,26);
+  drawTree(W*.85,H*.73,30);drawTree(W*.68,H*.79,22);
+  drawTree(W*.36,H*.62,20);drawTree(W*.64,H*.6,20);
 
-  // Tree positions — spread around the lower mountain slopes
-  drawTree(W*.14,H*.79,24);
-  drawTree(W*.21,H*.74,28);
-  drawTree(W*.27,H*.7,22);
-  drawTree(W*.18,H*.84,20);
-  drawTree(W*.73,H*.71,26);
-  drawTree(W*.79,H*.76,24);
-  drawTree(W*.85,H*.72,28);
-  drawTree(W*.68,H*.78,20);
-  drawTree(W*.36,H*.6,18);
-  drawTree(W*.64,H*.59,18);
-
-  // ── SNOWMAN (lower right)
+  // ── SNOWMEN
   function drawSnowman(sx,sy){
-    if(sy<cloudY+10)return;
+    if(sy<cloudY+20)return;
     ctx.save();ctx.translate(sx,sy);
-    const r=[11,8,6]; // body, middle, head radii
-    const yOff=[0,-20,-34];
-    r.forEach((rad,i)=>{
-      ctx.fillStyle='#f5faff';ctx.strokeStyle='rgba(140,180,210,.4)';ctx.lineWidth=1;
-      ctx.beginPath();ctx.arc(0,yOff[i],rad,0,Math.PI*2);ctx.fill();ctx.stroke();
+    [[11,0],[8,-20],[6,-34]].forEach((rb,i)=>{
+      ctx.fillStyle='#f5faff';ctx.strokeStyle='rgba(140,180,210,.35)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(0,rb[1],rb[0],0,Math.PI*2);ctx.fill();ctx.stroke();
     });
-    // Buttons
-    ctx.fillStyle='#334';
-    [-24,-20,-16].forEach(y=>{ctx.beginPath();ctx.arc(0,y,1.5,0,Math.PI*2);ctx.fill();});
-    // Eyes
     ctx.fillStyle='#223';
+    [-24,-20,-16].forEach(y=>{ctx.beginPath();ctx.arc(0,y,1.5,0,Math.PI*2);ctx.fill();});
     ctx.beginPath();ctx.arc(-2.5,-35.5,1.3,0,Math.PI*2);ctx.fill();
     ctx.beginPath();ctx.arc(2.5,-35.5,1.3,0,Math.PI*2);ctx.fill();
-    // Carrot nose
-    ctx.fillStyle='#e06010';
-    ctx.beginPath();ctx.moveTo(0,-34);ctx.lineTo(5,-33.5);ctx.lineTo(0,-33);ctx.closePath();ctx.fill();
-    // Hat
-    ctx.fillStyle='#222';
-    ctx.fillRect(-7,-44,14,3);ctx.fillRect(-5,-54,10,11);
-    // Scarf
-    ctx.strokeStyle='#c02020';ctx.lineWidth=3;
-    ctx.beginPath();ctx.arc(0,-27,8.5,-.5,Math.PI+.5);ctx.stroke();
-    // Arms (sticks)
+    ctx.fillStyle='#e06010';ctx.beginPath();ctx.moveTo(0,-34);ctx.lineTo(5,-33.5);ctx.lineTo(0,-33);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#222';ctx.fillRect(-7,-44,14,3);ctx.fillRect(-5,-54,10,11);
+    ctx.strokeStyle='#c02020';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,-27,8.5,-.5,Math.PI+.5);ctx.stroke();
     ctx.strokeStyle='#7a5030';ctx.lineWidth=2;
-    ctx.beginPath();ctx.moveTo(-11,-22);ctx.lineTo(-20,-18);ctx.moveTo(-20,-18);ctx.lineTo(-22,-15);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(11,-22);ctx.lineTo(20,-18);ctx.moveTo(20,-18);ctx.lineTo(22,-15);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(-11,-22);ctx.lineTo(-20,-17);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(11,-22);ctx.lineTo(20,-17);ctx.stroke();
     ctx.restore();
   }
-  drawSnowman(W*.87,H*.81);
-  drawSnowman(W*.13,H*.88);
+  drawSnowman(W*.87,H*.82);drawSnowman(W*.12,H*.87);
 
-  // ── FLAG PATH
+  // ── FLAG PATH — shows progress from base to where clouds start
   const baseX=W*.5,baseY=H*.91;
-  const topX=W*.5,topY=H*.05+H*.07;
+  const topX=W*.5,topY=cloudY+15; // flag path goes up TO the clouds
   const flagX=baseX+(topX-baseX)*pct;
   const flagY=baseY+(topY-baseY)*pct;
 
-  if(flagY>=cloudY-5){
-    ctx.strokeStyle='rgba(180,100,30,.65)';ctx.lineWidth=2;ctx.setLineDash([5,4]);
-    ctx.beginPath();ctx.moveTo(baseX,baseY);
-    ctx.bezierCurveTo(baseX-W*.04,baseY-H*.15,topX+W*.02,topY+H*.2,flagX,flagY);
-    ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(180,100,30,.45)';ctx.beginPath();ctx.arc(baseX,baseY,5,0,Math.PI*2);ctx.fill();
-    ctx.save();ctx.translate(flagX,flagY);
-    ctx.fillStyle='rgba(80,60,40,.9)';ctx.fillRect(-1,-22,2,22);
-    ctx.fillStyle=km>=100?'#f0c040':'#e03030';
-    if(km>=100){ctx.shadowColor='#f0c040';ctx.shadowBlur=16;}
-    ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(14,-15);ctx.lineTo(0,-8);ctx.closePath();ctx.fill();
-    ctx.shadowBlur=0;ctx.restore();
-  }
-  ctx.fillStyle='rgba(100,70,40,.5)';ctx.font='bold 10px Segoe UI';ctx.textAlign='center';
+  ctx.strokeStyle='rgba(180,100,30,.6)';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(baseX,baseY);
+  ctx.bezierCurveTo(baseX-W*.04,baseY-H*.15,topX+W*.02,topY+H*.1,flagX,flagY);
+  ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(180,100,30,.4)';ctx.beginPath();ctx.arc(baseX,baseY,5,0,Math.PI*2);ctx.fill();
+  ctx.save();ctx.translate(flagX,flagY);
+  ctx.fillStyle='rgba(70,50,30,.9)';ctx.fillRect(-1,-22,2,22);
+  ctx.fillStyle=km>=100?'#f0c040':'#e03030';
+  if(km>=100){ctx.shadowColor='#f0c040';ctx.shadowBlur=16;}
+  ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(14,-15);ctx.lineTo(0,-8);ctx.closePath();ctx.fill();
+  ctx.shadowBlur=0;ctx.restore();
+
+  ctx.fillStyle='rgba(100,70,40,.55)';ctx.font='bold 10px Segoe UI';ctx.textAlign='center';
   ctx.fillText('BASE',baseX,baseY+14);
 
-  // ── CLOUDS — thick fluffy, anchored at top, hide summit
-  // Solid fade above cloudY
-  const cgFade=ctx.createLinearGradient(0,cloudY-80,0,cloudY+50);
-  cgFade.addColorStop(0,'rgba(255,255,255,0)');
-  cgFade.addColorStop(.35,'rgba(248,252,255,.85)');
-  cgFade.addColorStop(1,'rgba(255,255,255,.99)');
-  ctx.fillStyle=cgFade;ctx.fillRect(0,0,W,cloudY+50);
+  // ── CLOUDS — FIXED at top, always hide summit
+  // Solid white block above cloudY
+  ctx.fillStyle='rgba(240,250,255,.96)';
+  ctx.fillRect(0,0,W,cloudY-20);
 
-  // Animated fluffy cloud puffs at the boundary
-  const drawCloudRow=(yBase,speedMult,alpha)=>{
+  // Soft fade below the solid block
+  const cgFade=ctx.createLinearGradient(0,cloudY-30,0,cloudY+55);
+  cgFade.addColorStop(0,'rgba(250,253,255,.96)');
+  cgFade.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=cgFade;ctx.fillRect(0,cloudY-30,W,85);
+
+  // Animated fluffy puffs AT cloudY boundary
+  const drawRow=(yBase,speed,alpha,count)=>{
     ctx.fillStyle=`rgba(255,255,255,${alpha})`;
-    for(let i=0;i<9;i++){
-      const cx2=((i*173+t*speedMult*25)%(W+180))-90;
-      const cy2=yBase+Math.sin(t*.9+i*1.2)*7;
-      ctx.beginPath();ctx.ellipse(cx2,cy2,68+i*6,24+i*2,0,0,Math.PI*2);ctx.fill();
+    for(let i=0;i<count;i++){
+      const cx2=((i*173+t*speed*28)%(W+200))-100;
+      const cy2=yBase+Math.sin(t*.9+i*1.2)*6;
+      ctx.beginPath();ctx.ellipse(cx2,cy2,72+i*5,26+i*2,0,0,Math.PI*2);ctx.fill();
     }
   };
-  drawCloudRow(cloudY+18,1,.95);
-  drawCloudRow(cloudY+2,.7,.85);
-  drawCloudRow(cloudY-14,.5,.7);
+  drawRow(cloudY+22,1,.97,9);
+  drawRow(cloudY+6,.7,.88,8);
+  drawRow(cloudY-10,.5,.75,7);
 
-  // Mystery text
-  ctx.fillStyle='rgba(100,140,170,.4)';
-  ctx.font='bold 16px Segoe UI';ctx.textAlign='center';
-  ctx.fillText('?  ?  ?',W*.5,Math.min(cloudY-16,H*.3));
+  // Mystery ? 
+  ctx.fillStyle='rgba(100,140,170,.45)';
+  ctx.font='bold 15px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('?  ?  ?',W*.5,cloudY-5);
 
-  // Update info overlay
+  // Update info
   const zone=(typeof getZone==='function')?getZone(km):{icon:'⛺',name:'Base Camp',min:0,max:10};
   document.getElementById('mtn-zone').textContent=zone.icon+' '+zone.name;
   document.getElementById('mtn-km').textContent=km.toFixed(1)+' km';
@@ -700,7 +671,7 @@ function updateIce(){
     if(tr<0||tr>=GR||tc<0||tc>=GC)continue;
     if(iceHP[tr][tc]<=0&&grid[tr][tc]!==TW){
       if(!p.inWater){p.inWater=true;p.stun=120;splash(p.wx,p.wy);}
-      p.vx*=.5;p.vy*=.5;if(p.stun<=0)hurt(p,.8);
+      p.vx*=.5;p.vy*=.5;if(p.stun<=0)hurt(p,5);
     } else p.inWater=false;
     if(p.stun>0)p.stun--;
   }
@@ -1064,8 +1035,11 @@ function draw(){
       cx.fillStyle='rgba(255,255,255,.06)';cx.fillRect(bx+2,by+2,TILE-4,3);
       cx.fillStyle='#18283c';cx.fillRect(bx,by+TILE-5,TILE,5);
     } else if(hp<=0){
-      const w=Math.sin(wt*1.1+r*.7+c*.5);cx.fillStyle='#05101a';cx.fillRect(bx,by,TILE,TILE);
-      cx.fillStyle=`rgba(10,45,90,${.18+w*.07})`;cx.fillRect(bx+3,by+TILE*.2|0,TILE-6,3);
+      const w=Math.sin(wt*1.1+r*.7+c*.5),w2=Math.sin(wt*1.8+r*.4+c*.8);
+      cx.fillStyle='#08213a';cx.fillRect(bx,by,TILE,TILE);
+      cx.fillStyle=`rgba(20,80,140,${.35+w*.12})`;cx.fillRect(bx+2,by+TILE*.18|0,TILE-4,4);
+      cx.fillStyle=`rgba(30,100,170,${.2+w2*.1})`;cx.fillRect(bx+6,by+TILE*.55|0,TILE-12,3);
+      cx.strokeStyle='rgba(20,70,120,.5)';cx.lineWidth=1;cx.strokeRect(bx,by,TILE,TILE);
       cx.strokeStyle='rgba(10,40,80,.3)';cx.lineWidth=.5;cx.strokeRect(bx,by,TILE,TILE);
     } else {
       // Simple clean ice floor
