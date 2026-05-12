@@ -378,51 +378,172 @@ function drawMtn(){
   if(!W||!H)return;
   mtnCv.width=W;mtnCv.height=H;
   const ctx=mtnCtx;ctx.clearRect(0,0,W,H);
-  const sky=ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,'#020810');sky.addColorStop(1,'#0d2a4a');
-  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
-  // stars
-  ctx.fillStyle='rgba(255,255,255,.5)';
-  for(let i=0;i<35;i++){ctx.beginPath();ctx.arc((i*173+7)%W,(i*89+11)%(H*.55),1,0,Math.PI*2);ctx.fill();}
-  // back mountain
-  ctx.fillStyle='#07141f';
-  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W*.15,H*.72);ctx.lineTo(W*.35,H*.52);ctx.lineTo(W*.5,H*.68);ctx.lineTo(W*.65,H*.5);ctx.lineTo(W*.85,H*.68);ctx.lineTo(W,H);ctx.closePath();ctx.fill();
-  // main mountain
-  const pkX=W*.5,pkY=H*.07;
-  ctx.fillStyle='#0e2a44';
-  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(W*.08,H*.68);ctx.lineTo(W*.22,H*.82);ctx.lineTo(W*.38,H*.44);ctx.lineTo(pkX,pkY);ctx.lineTo(W*.62,H*.41);ctx.lineTo(W*.78,H*.78);ctx.lineTo(W*.92,H*.65);ctx.lineTo(W,H);ctx.closePath();ctx.fill();
-  const km=getKmPerChar(selMode,selCls);
+
+  const km=(typeof getKmPerChar==='function')?getKmPerChar(selMode,selCls):0;
   const pct=Math.min(1,km/100);
-  // reveal: clouds hide the top, lift as km increases
-  const revY=H*(1-pct*.85-.15);
-  // draw snow cap only when near summit
-  if(pct>.8){ctx.globalAlpha=(pct-.8)/.2;ctx.fillStyle='#eef6ff';ctx.beginPath();ctx.moveTo(pkX-W*.015,pkY+H*.18);ctx.lineTo(pkX,pkY);ctx.lineTo(pkX+W*.015,pkY+H*.18);ctx.closePath();ctx.fill();ctx.globalAlpha=1;}
-  // cloud wall
-  const cg=ctx.createLinearGradient(0,revY-50,0,revY+30);
-  cg.addColorStop(0,'rgba(8,20,40,0)');cg.addColorStop(.5,'rgba(160,195,230,.85)');cg.addColorStop(1,'rgba(190,215,245,.97)');
-  ctx.fillStyle=cg;ctx.fillRect(0,0,W,revY+30);
-  // cloud wisps
-  const t=Date.now()*.0008;
-  ctx.fillStyle='rgba(210,228,248,.9)';
-  for(let i=0;i<7;i++){const cx=((i*137+t*28)%(W+100))-50,cy=revY+Math.sin(t+i*1.3)*9-4;ctx.beginPath();ctx.ellipse(cx,cy,52+i*8,15+i*2,0,0,Math.PI*2);ctx.fill();}
-  // mystery ?
-  ctx.fillStyle='rgba(180,210,240,.55)';ctx.font='bold 18px Segoe UI';ctx.textAlign='center';
-  ctx.fillText('?  ?  ?',pkX,Math.min(revY-8,H*.3));
-  // flag
-  const bX=W*.5,bY=H*.9,fX=bX+(pkX-bX)*pct,fY=bY+(pkY+H*.1-bY)*pct;
-  if(fY>=revY-5){
-    ctx.strokeStyle='rgba(240,192,60,.65)';ctx.lineWidth=1.5;ctx.setLineDash([5,5]);
-    ctx.beginPath();ctx.moveTo(bX,bY);ctx.bezierCurveTo(bX-W*.04,bY-H*.15,pkX+W*.02,pkY+H*.25,fX,fY);ctx.stroke();ctx.setLineDash([]);
-    ctx.fillStyle='rgba(240,192,60,.4)';ctx.beginPath();ctx.arc(bX,bY,5,0,Math.PI*2);ctx.fill();
-    ctx.save();ctx.translate(fX,fY);
-    ctx.fillStyle='#ccc';ctx.fillRect(-1,-22,2,22);
-    ctx.fillStyle=km>=100?'#f0c040':'#ff3333';
-    if(km>=100){ctx.shadowColor='#f0c040';ctx.shadowBlur=14;}
-    ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(14,-15);ctx.lineTo(0,-8);ctx.closePath();ctx.fill();
+  // Cloud line — how far down clouds sit (lifts as you climb)
+  const cloudY=H*(1-pct*.82-.12);
+
+  // ── SKY — light blue day sky
+  const sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#a8d8f0');
+  sky.addColorStop(.6,'#c8eaf8');
+  sky.addColorStop(1,'#dff4ff');
+  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+
+  // ── SUN (top right, subtle)
+  ctx.save();
+  ctx.fillStyle='rgba(255,240,180,.7)';
+  ctx.shadowColor='rgba(255,220,80,.4)';ctx.shadowBlur=30;
+  ctx.beginPath();ctx.arc(W*.82,H*.12,22,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+
+  // ── BACK MOUNTAIN (light blue-grey, distant)
+  ctx.fillStyle='#b8d0e0';
+  ctx.beginPath();ctx.moveTo(0,H);
+  ctx.lineTo(W*.1,H*.65);ctx.lineTo(W*.28,H*.72);
+  ctx.lineTo(W*.42,H*.48);ctx.lineTo(W*.5,H*.62);
+  ctx.lineTo(W*.62,H*.45);ctx.lineTo(W*.78,H*.68);
+  ctx.lineTo(W*.9,H*.6);ctx.lineTo(W,H);
+  ctx.closePath();ctx.fill();
+
+  // ── MAIN MOUNTAIN (white snowy)
+  const peakX=W*.5,peakY=H*.06;
+  // Mountain body — dark grey-blue rock
+  ctx.fillStyle='#7090a8';
+  ctx.beginPath();ctx.moveTo(0,H);
+  ctx.lineTo(W*.06,H*.72);ctx.lineTo(W*.18,H*.82);
+  ctx.lineTo(W*.34,H*.48);ctx.lineTo(peakX,peakY);
+  ctx.lineTo(W*.66,H*.45);ctx.lineTo(W*.82,H*.76);
+  ctx.lineTo(W*.94,H*.68);ctx.lineTo(W,H);
+  ctx.closePath();ctx.fill();
+
+  // Snow on mountain face — white overlay on upper portions
+  // Full snow cap
+  const snowGrad=ctx.createLinearGradient(0,peakY,0,H*.55);
+  snowGrad.addColorStop(0,'rgba(255,255,255,.98)');
+  snowGrad.addColorStop(.5,'rgba(240,248,255,.7)');
+  snowGrad.addColorStop(1,'rgba(220,238,250,.0)');
+  ctx.fillStyle=snowGrad;
+  ctx.beginPath();ctx.moveTo(0,H);
+  ctx.lineTo(W*.06,H*.72);ctx.lineTo(W*.18,H*.82);
+  ctx.lineTo(W*.34,H*.48);ctx.lineTo(peakX,peakY);
+  ctx.lineTo(W*.66,H*.45);ctx.lineTo(W*.82,H*.76);
+  ctx.lineTo(W*.94,H*.68);ctx.lineTo(W,H);
+  ctx.closePath();ctx.fill();
+
+  // ── TREES (only in revealed zone, lower mountain)
+  const trees=[
+    {x:W*.16,y:H*.78,s:.9},{x:W*.22,y:H*.74,s:1.1},
+    {x:W*.28,y:H*.7,s:.85},{x:W*.72,y:H*.72,s:1.0},
+    {x:W*.76,y:H*.76,s:.9},{x:W*.83,y:H*.72,s:1.05},
+    {x:W*.38,y:H*.58,s:.7},{x:W*.62,y:H*.56,s:.75},
+  ];
+  trees.forEach(t=>{
+    if(t.y<cloudY-10)return; // hide trees behind clouds
+    ctx.save();ctx.translate(t.x,t.y);
+    const sz=18*t.s;
+    // Tree trunk
+    ctx.fillStyle='#5a3a20';
+    ctx.fillRect(-2,0,4,sz*.35);
+    // Three triangle tiers
+    [[sz,0],[sz*.85,-sz*.3],[sz*.65,-sz*.55]].forEach(([w,yo],i)=>{
+      ctx.fillStyle=i===0?'#1a5a28':i===1?'#1e6a30':'#228836';
+      ctx.beginPath();ctx.moveTo(-w/2,yo);ctx.lineTo(w/2,yo);ctx.lineTo(0,yo-sz*.6);ctx.closePath();ctx.fill();
+      // Snow on top of tree
+      ctx.fillStyle='rgba(255,255,255,.75)';
+      ctx.beginPath();ctx.moveTo(-w*.3,yo-sz*.2);ctx.lineTo(w*.3,yo-sz*.2);ctx.lineTo(0,yo-sz*.6);ctx.closePath();ctx.fill();
+    });
+    ctx.restore();
+  });
+
+  // ── SNOWMAN (rare detail, lower right area)
+  const smX=W*.88,smY=H*.82;
+  if(smY>cloudY-5){
+    ctx.save();ctx.translate(smX,smY);
+    // Body
+    ctx.fillStyle='#f0f8ff';ctx.strokeStyle='rgba(100,150,180,.4)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.arc(0,0,10,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.arc(0,-17,7.5,0,Math.PI*2);ctx.fill();ctx.stroke();
+    ctx.beginPath();ctx.arc(0,-28,5.5,0,Math.PI*2);ctx.fill();ctx.stroke();
+    // Eyes
+    ctx.fillStyle='#222';
+    ctx.beginPath();ctx.arc(-2,-30,1.2,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(2,-30,1.2,0,Math.PI*2);ctx.fill();
+    // Nose
+    ctx.fillStyle='#e87020';
+    ctx.beginPath();ctx.moveTo(0,-28.5);ctx.lineTo(4,-28);ctx.lineTo(0,-27.5);ctx.closePath();ctx.fill();
+    // Hat
+    ctx.fillStyle='#2a2a2a';
+    ctx.fillRect(-6,-37,12,3);ctx.fillRect(-4,-47,8,10);
+    // Scarf
+    ctx.fillStyle='#e03030';
+    ctx.beginPath();ctx.arc(0,-21,7.5,-.3,Math.PI+.3);ctx.lineWidth=3;ctx.strokeStyle='#e03030';ctx.stroke();
     ctx.restore();
   }
-  ctx.fillStyle='rgba(255,255,255,.22)';ctx.font='bold 10px Segoe UI';ctx.textAlign='center';
-  ctx.fillText('BASE',bX,bY+14);
+
+  // ── FLAG PATH & FLAG
+  const baseX=W*.5,baseY=H*.9;
+  const topX=peakX,topY=peakY+H*.08;
+  const flagX=baseX+(topX-baseX)*pct;
+  const flagY=baseY+(topY-baseY)*pct;
+
+  if(flagY>=cloudY-5){
+    ctx.strokeStyle='rgba(200,120,40,.7)';ctx.lineWidth=2;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(baseX,baseY);
+    ctx.bezierCurveTo(baseX-W*.04,baseY-H*.15,topX+W*.02,topY+H*.2,flagX,flagY);
+    ctx.stroke();ctx.setLineDash([]);
+    // Base dot
+    ctx.fillStyle='rgba(200,120,40,.5)';ctx.beginPath();ctx.arc(baseX,baseY,5,0,Math.PI*2);ctx.fill();
+    // Flag
+    ctx.save();ctx.translate(flagX,flagY);
+    ctx.fillStyle='rgba(80,80,80,.8)';ctx.fillRect(-1,-22,2,22);
+    ctx.fillStyle=km>=100?'#f0c040':'#e03030';
+    if(km>=100){ctx.shadowColor='#f0c040';ctx.shadowBlur=16;}
+    ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(14,-15);ctx.lineTo(0,-8);ctx.closePath();ctx.fill();
+    ctx.shadowBlur=0;ctx.restore();
+  }
+
+  // BASE label
+  ctx.fillStyle='rgba(80,60,40,.5)';ctx.font='bold 10px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('BASE',baseX,baseY+14);
+
+  // ── CLOUDS — hang at cloudY, animated, hide top of mountain
+  const t2=Date.now()*.0007;
+  // Background cloud fill (solid above cloudY)
+  const cgTop=ctx.createLinearGradient(0,cloudY-60,0,cloudY+40);
+  cgTop.addColorStop(0,'rgba(255,255,255,0)');
+  cgTop.addColorStop(.4,'rgba(240,248,255,.88)');
+  cgTop.addColorStop(1,'rgba(235,245,255,.98)');
+  ctx.fillStyle=cgTop;ctx.fillRect(0,0,W,cloudY+40);
+
+  // Fluffy cloud shapes at boundary
+  ctx.fillStyle='rgba(255,255,255,.95)';
+  for(let i=0;i<8;i++){
+    const cx2=((i*157+t2*25)%(W+160))-80;
+    const cy2=cloudY+Math.sin(t2+i*1.1)*8;
+    const rx=60+i*7,ry=22+i*3;
+    ctx.beginPath();ctx.ellipse(cx2,cy2,rx,ry,0,0,Math.PI*2);ctx.fill();
+  }
+  // Second layer slightly higher
+  ctx.fillStyle='rgba(245,252,255,.8)';
+  for(let i=0;i<6;i++){
+    const cx2=((i*193+t2*18+40)%(W+120))-60;
+    const cy2=cloudY-15+Math.sin(t2*.8+i*1.4)*6;
+    ctx.beginPath();ctx.ellipse(cx2,cy2,50+i*9,16+i*2,0,0,Math.PI*2);ctx.fill();
+  }
+
+  // "?" mystery text in clouds
+  ctx.fillStyle='rgba(120,160,190,.45)';
+  ctx.font='bold 17px Segoe UI';ctx.textAlign='center';
+  ctx.fillText('?  ?  ?',peakX,Math.min(cloudY-12,H*.28));
+
+  // ── UPDATE INFO OVERLAY
+  const zone=(typeof getZone==='function')?getZone(km):{icon:'⛺',name:'Base Camp',min:0,max:10};
+  document.getElementById('mtn-zone').textContent=zone.icon+' '+zone.name;
+  document.getElementById('mtn-km').textContent=km.toFixed(1)+' km';
+  document.getElementById('mtn-bar-fill').style.width=Math.min(100,(km/100)*100)+'%';
+  document.getElementById('mtn-bar-txt').textContent=km.toFixed(1)+' / 100 km';
 }
 // animate mountain
 (function mtnLoop(){requestAnimationFrame(mtnLoop);if(document.getElementById('menu').style.display!=='none')drawMtn();})();
