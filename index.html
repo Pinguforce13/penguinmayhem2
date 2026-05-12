@@ -234,15 +234,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:#050d1a;}
 //  PENGUIN MAYHEM — volledig in één bestand
 // ════════════════════════════════════════════════════
 
-// ── ACCOUNTS
-const DB={
-  get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}},
-  del(k){try{localStorage.removeItem(k);}catch{}}
-};
-function getUsers(){return DB.get('pm_users')||{};}
-function saveUsers(u){DB.set('pm_users',u);}
-let CU=null; // current user
+// ── ACCOUNTS (in geheugen, geen opslag)
+const _users={};
+let CU=null;
 
 function doAuth(){
   const type=document.getElementById('auth-type').value;
@@ -252,25 +246,20 @@ function doAuth(){
   err.textContent='';
   if(!user||user.length<3){err.textContent='Username min. 3 tekens!';return;}
   if(!pass){err.textContent='Wachtwoord invullen!';return;}
-  const users=getUsers();
   if(type==='register'){
-    if(users[user]){err.textContent='Al in gebruik!';return;}
-    users[user]={username:user,password:pass,wins:{},mountains:{},streak:0};
-    saveUsers(users);CU=users[user];
+    if(_users[user]){err.textContent='Al in gebruik!';return;}
+    _users[user]={username:user,password:pass,wins:{},mountains:{},streak:0};
+    CU=_users[user];
   } else {
-    if(!users[user]){err.textContent='Niet gevonden!';return;}
-    if(users[user].password!==pass){err.textContent='Verkeerd wachtwoord!';return;}
-    CU=users[user];
+    if(!_users[user]){err.textContent='Niet gevonden!';return;}
+    if(_users[user].password!==pass){err.textContent='Verkeerd wachtwoord!';return;}
+    CU=_users[user];
   }
-  if(!CU.mountains)CU.mountains={};
-  if(!CU.wins)CU.wins={};
-  if(!CU.streak)CU.streak=0;
-  DB.set('pm_current',CU.username);
   showMenu();
 }
 
 function doLogout(){
-  CU=null;DB.del('pm_current');
+  CU=null;
   document.getElementById('auth-user').value='';
   document.getElementById('auth-pass').value='';
   document.getElementById('auth-err').textContent='';
@@ -337,7 +326,6 @@ function addKm(mode,cls,km){
   if(!CU)return;
   if(!CU.mountains[mode])CU.mountains[mode]={};
   CU.mountains[mode][cls]=Math.max(0,(CU.mountains[mode][cls]||0)+km);
-  const u=getUsers();u[CU.username]=CU;saveUsers(u);
 }
 
 // ── SELECTIONS
@@ -457,18 +445,8 @@ document.getElementById('btn-exit').onclick=()=>{running=false;if(raf)cancelAnim
 document.getElementById('btn-again').onclick=()=>{document.getElementById('result').style.display='none';startGame();};
 document.getElementById('btn-menu').onclick=()=>{document.getElementById('result').style.display='none';if(isMob){document.getElementById('joy').style.display='none';document.getElementById('shoot-btn').style.display='none';}showMenu();};
 
-// ── AUTO LOGIN
-(()=>{
-  const name=DB.get('pm_current');
-  if(!name){showAuth();return;}
-  const users=getUsers();
-  if(!users[name]){showAuth();return;}
-  CU=users[name];
-  if(!CU.mountains)CU.mountains={};
-  if(!CU.wins)CU.wins={};
-  if(!CU.streak)CU.streak=0;
-  showMenu();
-})();
+// Toon auth bij start
+showAuth();
 
 // ════════════════════════════════════════════════════
 //  GAME ENGINE
@@ -832,7 +810,7 @@ function updateHUD(){
 // ── DRAW
 function draw(){
   cx.fillStyle='#0a1e30';cx.fillRect(0,0,SW,SH);
-  const R=getRows(),C=getCols(),G=getGrid(),TV=getTileVar(),P=getPaint();
+  const R=getRows(),C=getCols(),G=getGrid(),P=getPaint();
   const sC=Math.max(0,Math.floor(camX/TILE)-1),eC=Math.min(C,Math.ceil((camX+SW)/TILE)+1);
   const sR=Math.max(0,Math.floor(camY/TILE)-1),eR=Math.min(R,Math.ceil((camY+SH)/TILE)+1);
   const wt=Date.now()*.001;
@@ -841,8 +819,8 @@ function draw(){
     const shk=tr>0?(Math.random()-.5)*(tr>ICE_TREMOR*.5?5:2):0;
     const bx=Math.round(c*TILE-camX+shk),by=Math.round(r*TILE-camY+shk*.5);
     if(cell===TW){
-      cx.fillStyle=`rgba(${20+tv.bright*8|0},${38+tv.bright*10|0},${58+tv.bright*12|0},1)`;cx.fillRect(bx,by,TILE,TILE);
-      cx.fillStyle='#3a5272';cx.fillRect(bx+2,by+2,TILE-4,TILE*.46|0);
+      cx.fillStyle='#2a3e5a';cx.fillRect(bx,by,TILE,TILE);
+      cx.fillStyle='#3a5272';cx.fillRect(bx+2,by+2,TILE-4,Math.floor(TILE*.48));
       cx.fillStyle='rgba(255,255,255,.06)';cx.fillRect(bx+2,by+2,TILE-4,3);
       cx.fillStyle='#18283c';cx.fillRect(bx,by+TILE-5,TILE,5);
     } else if(hp<=0){
