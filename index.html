@@ -702,6 +702,9 @@ window.addEventListener('touchend',e=>{for(const t of e.changedTouches){if(t.ide
 function startGame(){
   if(!CU)return;
   showGame();
+  // Reset canvas size now that it's visible
+  SW=window.innerWidth;SH=window.innerHeight;
+  cv.width=SW;cv.height=SH;
   document.getElementById('hud-bots').innerHTML='';
   document.getElementById('hud-inv').innerHTML='';
   initGrid();initSBMap();spawnAll();initIce();
@@ -832,10 +835,9 @@ function draw(){
   const R=getRows(),C=getCols(),G=getGrid(),TV=getTileVar(),P=getPaint();
   const sC=Math.max(0,Math.floor(camX/TILE)-1),eC=Math.min(C,Math.ceil((camX+SW)/TILE)+1);
   const sR=Math.max(0,Math.floor(camY/TILE)-1),eR=Math.min(R,Math.ceil((camY+SH)/TILE)+1);
-  const wt=Date.now()*.001,wb=Math.sin(wt*.4)*.4;
+  const wt=Date.now()*.001;
   for(let r=sR;r<eR;r++)for(let c=sC;c<eC;c++){
     const cell=G[r][c],hp=isSB()?4:(iceHP[r]?.[c]||4),tr=isSB()?0:(iceTremor[r]?.[c]||0);
-    const tv=TV[r]?.[c];if(!tv)continue;
     const shk=tr>0?(Math.random()-.5)*(tr>ICE_TREMOR*.5?5:2):0;
     const bx=Math.round(c*TILE-camX+shk),by=Math.round(r*TILE-camY+shk*.5);
     if(cell===TW){
@@ -846,19 +848,25 @@ function draw(){
     } else if(hp<=0){
       const w=Math.sin(wt*1.1+r*.7+c*.5);cx.fillStyle='#05101a';cx.fillRect(bx,by,TILE,TILE);
       cx.fillStyle=`rgba(10,45,90,${.18+w*.07})`;cx.fillRect(bx+3,by+TILE*.2|0,TILE-6,3);
+      cx.strokeStyle='rgba(10,40,80,.3)';cx.lineWidth=.5;cx.strokeRect(bx,by,TILE,TILE);
     } else {
-      const ics=isSB()?['#c8dce8','#d8eaf4','#e8f4fa','#f4faff']:['#a8ccde','#bcd8e8','#d0e8f4','#e4f2fa'];
-      cx.fillStyle=ics[hp-1]||ics[3];
-      const wb2=wb*.3;
-      const tx=bx+tv.tl.x+wb2,ty=by+tv.tl.y+wb2,tx2=bx+TILE+tv.tr.x-wb2,ty2=by+tv.tr.y+wb2;
-      const bx2=bx+tv.bl.x+wb2,by2=by+TILE+tv.bl.y-wb2,bx3=bx+TILE+tv.br.x-wb2,by3=by+TILE+tv.br.y-wb2;
-      cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(tx2,ty2);cx.lineTo(bx3,by3);cx.lineTo(bx2,by2);cx.closePath();cx.fill();
-      cx.globalAlpha=tv.bright*.16;cx.fillStyle='#fff';cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(tx2,ty2);cx.lineTo(bx3-2,by3-TILE*.7);cx.lineTo(tx+2,ty+TILE*.25);cx.closePath();cx.fill();cx.globalAlpha=1;
-      if(tv.scratch){cx.strokeStyle=`rgba(80,130,170,${.12*tv.bright})`;cx.lineWidth=.6;cx.beginPath();cx.moveTo(bx+TILE*.2,by+TILE*.3);cx.lineTo(bx+TILE*.2+Math.cos(tv.scratchA)*tv.scratchL,by+TILE*.3+Math.sin(tv.scratchA)*tv.scratchL);cx.stroke();}
-      if(!isSB()&&hp<=3){cx.strokeStyle=`rgba(60,110,160,${hp<=1?.75:hp<=2?.5:.28})`;cx.lineWidth=hp<=1?1.8:.8;cx.beginPath();cx.moveTo(bx+9,by+11);cx.lineTo(bx+23,by+23);if(hp<=2)cx.moveTo(bx+31,by+7);if(hp<=2)cx.lineTo(bx+17,by+27);if(hp<=1){cx.moveTo(bx+3,by+3);cx.lineTo(bx+TILE-3,by+TILE-3);}cx.stroke();}
-      if(tr>ICE_TREMOR*.5){const g=(tr-ICE_TREMOR*.5)/(ICE_TREMOR*.5);cx.fillStyle=`rgba(255,90,20,${g*.3})`;cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(tx2,ty2);cx.lineTo(bx3,by3);cx.lineTo(bx2,by2);cx.closePath();cx.fill();}
-      cx.strokeStyle='rgba(160,210,235,.1)';cx.lineWidth=.4;cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(tx2,ty2);cx.lineTo(bx3,by3);cx.lineTo(bx2,by2);cx.closePath();cx.stroke();
-      if(P[r][c]){cx.globalAlpha=.42;cx.fillStyle=P[r][c]===1?'#2860d0':'#d03020';cx.beginPath();cx.moveTo(tx,ty);cx.lineTo(tx2,ty2);cx.lineTo(bx3,by3);cx.lineTo(bx2,by2);cx.closePath();cx.fill();cx.globalAlpha=1;}
+      // Simple clean ice floor
+      const ics=isSB()?'#ddeef8':'#e8f4ff';
+      cx.fillStyle=ics;cx.fillRect(bx,by,TILE,TILE);
+      // Simple shine strip
+      cx.fillStyle='rgba(255,255,255,.3)';cx.fillRect(bx+2,by+2,TILE-4,Math.floor(TILE*.18));
+      // Damage cracks
+      if(!isSB()&&hp<=3){
+        cx.strokeStyle=`rgba(80,140,190,${hp<=1?.7:hp<=2?.45:.25})`;cx.lineWidth=hp<=1?1.5:1;
+        cx.beginPath();cx.moveTo(bx+8,by+10);cx.lineTo(bx+22,by+22);cx.moveTo(bx+22,by+22);cx.lineTo(bx+16,by+36);
+        if(hp<=2){cx.moveTo(bx+30,by+8);cx.lineTo(bx+18,by+26);}
+        if(hp<=1){cx.moveTo(bx+2,by+2);cx.lineTo(bx+TILE-2,by+TILE-2);}
+        cx.stroke();
+      }
+      if(tr>ICE_TREMOR*.5){const g=(tr-ICE_TREMOR*.5)/(ICE_TREMOR*.5);cx.fillStyle=`rgba(255,90,20,${g*.35})`;cx.fillRect(bx,by,TILE,TILE);}
+      cx.strokeStyle='rgba(160,210,235,.2)';cx.lineWidth=.5;cx.strokeRect(bx,by,TILE,TILE);
+      // Paint overlay for snowball
+      if(P[r][c]){cx.globalAlpha=.45;cx.fillStyle=P[r][c]===1?'#2860d0':'#d03020';cx.fillRect(bx,by,TILE,TILE);cx.globalAlpha=1;}
     }
   }
   // ice warning
