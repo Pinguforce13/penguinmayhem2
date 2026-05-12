@@ -837,7 +837,7 @@ function doBot(p){
 function shoot(p){
   if(p.ammo<=0)return;p.cd=p.fr;p.ammo--;p.slots.push(p.relT);
   const snow=isSB(),n=p.cls==='soldier'?2:1;
-  for(let i=0;i<n;i++){const sp=n>1?(i-.5)*.1:0,ang=p.angle+sp;bullets.push({wx:p.wx+Math.cos(ang)*(PR+4),wy:p.wy+Math.sin(ang)*(PR+4),vx:Math.cos(ang)*p.bspd*2,vy:Math.sin(ang)*p.bspd*2,own:p,dmg:snow?0:p.dmg,col:snow?(p.isP?'#3a80f0':'#e04040'):p.col,life:75,frz:p.cls==='mage'&&!snow,snow,team:p.team||( p.isP?1:2),trail:[]});}
+  for(let i=0;i<n;i++){const sp=n>1?(i-.5)*.1:0,ang=p.angle+sp;bullets.push({wx:p.wx+Math.cos(ang)*(PR+4),wy:p.wy+Math.sin(ang)*(PR+4),vx:Math.cos(ang)*p.bspd*2,vy:Math.sin(ang)*p.bspd*2,own:p,dmg:snow?0:p.dmg,col:snow?(p.team===1?'#3a80f0':'#e04040'):p.col,life:75,frz:p.cls==='mage'&&!snow,snow,team:p.team,trail:[]});}
   if(p.isP)renderAmmo(p);
 }
 function updateBullets(){
@@ -850,7 +850,7 @@ function updateBullets(){
     if(b.wx<0||b.wx>C*TILE||b.wy<0||b.wy>R*TILE){b.life=0;continue;}
     if(b.snow)paintTile(b.wx,b.wy,b.team);
     for(const p of players){
-      if(!p.alive||p===b.own||p.inv>0)continue;if(isSB()&&p.team===b.own.team&&p.team!==0)continue;
+      if(!p.alive||p===b.own||p.inv>0)continue;if(b.team>0&&p.team===b.team)continue;
       const dx=p.wx-b.wx,dy=p.wy-b.wy;
       if(Math.sqrt(dx*dx+dy*dy)<PR+5){
         if(b.snow){for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++)paintTile(b.wx+dc*TILE,b.wy+dr*TILE,b.team);hurt(p,25);}
@@ -950,7 +950,7 @@ function drawP(p){
   const R=PR;cx.save();
   if(p.inv>0&&Math.floor(p.inv/3)%2===0)cx.globalAlpha=.28;
   if(p.frz>0){cx.shadowColor='#80d0ff';cx.shadowBlur=10;}
-  if(isSB()){cx.strokeStyle=p.isP?'#3a80f0':'#e04040';cx.lineWidth=3;cx.beginPath();cx.arc(px,py,R+3,0,Math.PI*2);cx.stroke();}
+  if(isSB()){cx.strokeStyle=p.team===1?'#3a80f0':'#e04040';cx.lineWidth=3;cx.beginPath();cx.arc(px,py,R+3,0,Math.PI*2);cx.stroke();}
   cx.save();cx.globalAlpha=(cx.globalAlpha||1)*.15;cx.fillStyle='#000';cx.beginPath();cx.ellipse(px+2,py+2,R,R*.6,0,0,Math.PI*2);cx.fill();cx.restore();
   cx.fillStyle=p.frz>0?'#c0e8ff':p.inWater?'#2060a0':'#16162a';cx.beginPath();cx.arc(px,py,R,0,Math.PI*2);cx.fill();
   cx.fillStyle=p.inWater?'#4090d0':p.col;cx.beginPath();cx.arc(px,py,R*.58,0,Math.PI*2);cx.fill();
