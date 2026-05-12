@@ -656,12 +656,12 @@ function spawnAll(){
     const bots=['surfer','soldier','mage','tank'].filter(c=>c!==selCls);
     while(bots.length<5)bots.push(bots[Math.floor(Math.random()*bots.length)]);
     cfgs=[
-      {cls:selCls,isP:true,team:1,wx:2.5*TILE,wy:2.5*TILE},
-      {cls:bots[0],isP:false,team:1,wx:4.5*TILE,wy:2.5*TILE},
-      {cls:bots[1],isP:false,team:1,wx:2.5*TILE,wy:4.5*TILE},
-      {cls:bots[2],isP:false,team:2,wx:(SBC-2.5)*TILE,wy:(SBR-2.5)*TILE},
-      {cls:bots[3],isP:false,team:2,wx:(SBC-4.5)*TILE,wy:(SBR-2.5)*TILE},
-      {cls:bots[4],isP:false,team:2,wx:(SBC-2.5)*TILE,wy:(SBR-4.5)*TILE},
+      {cls:selCls, isP:true, team:1,wx:1.5*TILE,wy:1.5*TILE},
+      {cls:bots[0],isP:false,team:1,wx:2.5*TILE,wy:1.5*TILE},
+      {cls:bots[1],isP:false,team:1,wx:1.5*TILE,wy:3.5*TILE},
+      {cls:bots[2],isP:false,team:2,wx:(SBC-1.5)*TILE,wy:(SBR-2.5)*TILE},
+      {cls:bots[3],isP:false,team:2,wx:(SBC-2.5)*TILE,wy:(SBR-2.5)*TILE},
+      {cls:bots[4],isP:false,team:2,wx:(SBC-1.5)*TILE,wy:(SBR-4.5)*TILE},
     ];
   } else {
     const bots=['surfer','soldier','mage','tank'].filter(c=>c!==selCls);
@@ -728,7 +728,7 @@ function loop(ts){
   const R=getRows(),C=getCols(),maxX=(C-1)*TILE-PR,maxY=(R-1)*TILE-PR;
   for(const p of players){
     if(!p.alive){
-      if(isSB()&&p.respawn>0){p.respawn--;if(p.respawn<=0){p.alive=true;p.hp=p.mhp;p.inWater=false;p.stun=0;const sp=p.isP?{wx:2.5*TILE,wy:2.5*TILE}:{wx:(SBC-2.5)*TILE,wy:(SBR-2.5)*TILE};p.wx=sp.wx;p.wy=sp.wy;}}
+      if(isSB()&&p.respawn>0){p.respawn--;if(p.respawn<=0){p.alive=true;p.hp=p.mhp;p.inWater=false;p.stun=0;const sp=p.team===1?{wx:2.5*TILE,wy:2.5*TILE}:{wx:(SBC-2.5)*TILE,wy:(SBR-2.5)*TILE};p.wx=sp.wx;p.wy=sp.wy;}}
       continue;
     }
     p.inv=Math.max(0,p.inv-1);p.cd=Math.max(0,p.cd-1);
